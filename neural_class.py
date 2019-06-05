@@ -2,7 +2,6 @@
 import face_recognition
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from collections import Counter
 
 
@@ -10,7 +9,9 @@ class NeuralClass:
 
     def __init__(self, frame):
         self.frame = frame
+        self.coord = list()
         self.faces = self.cropper()
+
 
     def cropper(self):
         faces = list()
@@ -18,16 +19,20 @@ class NeuralClass:
         print("cropping")
         for frame in self.frame:
             small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-            person_loc = list(np.array(face_recognition.face_locations(small_frame))*4)
+            person_loc = face_recognition.face_locations(small_frame)
             print("Person detect: {}".format(len(person_loc)))
             if(len(person_loc)):
                 people, areas = utils.setDictionary(person_loc)
+                people.sort(key=utils.sortDictionary, reverse=True)
+                people = people[0]
                 # encuentra la cara mas grande
                 indexMax = areas.index(max(areas))
                 person_location = person_loc[indexMax]
-                person_location = list(np.array(person_location)*4)
-                faces.append({"frame": frame, "cord": person_location})
-
+                t, r, b, l = list(np.array(person_location)*4)
+                crop_img = frame[t:t+(r-l), l:l+(b-t)]
+                crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
+                faces.append(crop_img)
+                self.coord.append((t, r, b, l))
         return faces
 
     def detect(self):
@@ -53,7 +58,6 @@ class NeuralClass:
 
     def gender(self):
         pass
-
 
 
 class Utils:
