@@ -1,0 +1,19 @@
+    cap.release()
+    neural = NeuralClass(batch, 0.1)
+    rows = 2
+    columns = len(neural.faces)
+    fig, ax = plt.subplots(rows, columns)
+    fig.suptitle('Faces Detected\n {}/{}'.format(columns, len(batch)))
+
+    for j in range(columns):
+        for i in range(rows):
+            # ax[i][j].set_xlabel("{}%".format(neural.percents[i]))
+            print("{} : {} print {}".format(j, i, neural.coord[i]))
+            ax[i][j].imshow(neural.faces[i])
+            ax[i][j].set_yticklabels([])
+            ax[i][j].set_xticklabels([])
+        ax[i][j].imshow(neural.frame[i])
+
+        ax[i][j].set_yticklabels([])
+        ax[i][j].set_xticklabels([])
+    plt.show()

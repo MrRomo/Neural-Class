@@ -7,17 +7,21 @@ from collections import Counter
 
 class NeuralClass:
 
-    def __init__(self, frame):
+    def __init__(self, frame, percent):
         self.frame = frame
+        self.percent = percent
         self.coord = list()
+        self.percents = list()
         self.faces = self.cropper()
 
 
     def cropper(self):
         faces = list()
+        frames = list()
         utils = Utils()
         print("cropping")
         for frame in self.frame:
+            frame_area = frame.shape[0]*frame.shape[1]
             small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
             person_loc = face_recognition.face_locations(small_frame)
             print("Person detect: {}".format(len(person_loc)))
@@ -26,13 +30,18 @@ class NeuralClass:
                 people.sort(key=utils.sortDictionary, reverse=True)
                 people = people[0]
                 # encuentra la cara mas grande
-                indexMax = areas.index(max(areas))
+                face_area = max(areas)
+                indexMax = areas.index(face_area)
                 person_location = person_loc[indexMax]
-                t, r, b, l = list(np.array(person_location)*4)
-                crop_img = frame[t:t+(r-l), l:l+(b-t)]
-                crop_img = cv2.cvtColor(crop_img, cv2.COLOR_BGR2RGB)
-                faces.append(crop_img)
-                self.coord.append((t, r, b, l))
+                t, r, b, l = list(np.array(person_location)*4) ##top, rigth, bottom, left
+                percent = face_area*100/float(frame_area)
+                if(percent>=self.percent):
+                    crop_img = frame[t:t+(r-l), l:l+(b-t)] ##crop = image[y:y+h, x:x+w]
+                    faces.append(crop_img)
+                    frames.append(frame)
+                    self.coord.append((t, r, b, l))
+                    self.percents.append(round(percent,2))
+        self.frame = frames
         return faces
 
     def detect(self):

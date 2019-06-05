@@ -12,29 +12,24 @@ if __name__ == "__main__":
     for i in range(10):
         print "capture image {}".format(str(i))
         error, frame = cap.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
         batch.append(frame)
 
     cap.release()
-    neural = NeuralClass(batch)
-    print ("befores")
-    print (neural.coord)
-    print type(neural.coord)
-    print len(neural.coord)
-    fig = plt.figure(figsize=(8, 8))
-    columns = 2
-    rows = 5
-    for i in range(0, columns*rows):
-        print("plot {}".format(i))
-        if(i > len(neural.faces)-1):
-            img = neural.faces[len(neural.faces)-1]
-        else:
-            img = neural.faces[i]
-        fig.add_subplot(rows, columns, i+1)
+    neural = NeuralClass(batch, 0.1)
 
-        plt.imshow(img)
-    for i in range(0, columns*rows):
-        print("plot {}".format(i))
-        img = neural.frame[i]
-        fig.add_subplot(rows, columns, i+1)
-        plt.imshow(img)
+    columns = 2
+    rows = len(neural.faces)
+    fig, ax = plt.subplots(rows, columns)
+
+    for i in range(rows):
+        for j in range(columns):
+            ax[i][j].imshow(neural.faces[i])
+        ax[i][0].imshow(neural.frame[i])
+
+    print(ax)
+    ax.tranpose()
+    print(ax)
+    print(type(ax))
     plt.show()
