@@ -11,15 +11,16 @@ class NeuralClass:
         self.frame = frame
         self.percent = percent
         self.tolerance = tolerance
-        self.coord = list()
-        self.percents = list()
+        self.coord = []
+        self.percents = []
+        self.people = []
+        self.utils = Utils()
         # inicializa la clase recortando, guardando las caras y descartando los frames malos
         self.faces = self.cropper()
 
     def cropper(self):
         faces = list()
         frames = list()
-        utils = Utils()
         print("cropping")
         for frame in self.frame:
             frame_area = frame.shape[0]*frame.shape[1]
@@ -27,16 +28,17 @@ class NeuralClass:
             person_loc = face_recognition.face_locations(small_frame)
             print("Person detect: {}".format(len(person_loc)))
             if(len(person_loc)):  # detecta si hay personas
-                people, areas = utils.setDictionary(person_loc)
+                people, areas = self.utils.setDictionary(person_loc)
                 # ordena las caras de mayor a menor detectadas en el frame
-                people.sort(key=utils.sortDictionary, reverse=True)
+                people.sort(key=self.utils.sortDictionary, reverse=True)
                 people = people[0]
                 # encuentra la cara mas grande
                 face_area = max(areas)
                 indexMax = areas.index(face_area)
                 person_location = person_loc[indexMax]
                 # top, rigth, bottom, left (t,r,b,l)
-                t, r, b, l = utils.increase(list(np.array(person_location)*4))
+                t, r, b, l = self.utils.increase(
+                    list(np.array(person_location)*4))
                 percent = face_area*100/float(frame_area)
                 if(percent >= self.percent):
                     # recortar imagenes image[y:y+h, x:x+w]
@@ -44,31 +46,34 @@ class NeuralClass:
                     frames.append(frame)
                     self.coord.append((t, r, b, l))
                     self.percents.append(round(percent, 2))
+                    self.people.append(people)
         # guarda unicamente los frames donde hay caras
         self.frame = frames
         return faces
 
     def detect(self):
-        pass
+        return self.people[0] if len(self.people) else []
 
     def encode(self):
         person_encoding = face_recognition.face_encodings(self.faces[0])
         return person_encoding
 
     def compare(self, known_faces, personGroup):
-        person_encoding = self.encode()
-        matches = face_recognition.compare_faces(
-            known_faces, person_encoding, tolerance=self.tolerance)
+        if len(self.detect()):
+            person_encoding = self.encode()
+            matches = face_recognition.compare_faces(known_faces, person_encoding, tolerance=self.tolerance)
 
-        print("matches", matches)
-        if True in matches:
-            first_match_index = matches.index(True)
-            people = personGroup[first_match_index]
-            distance = face_recognition.face_distance(
-                [known_faces[first_match_index]], person_encoding)
-            people['accuracy'] = 1-distance[0]*self.tolerance
-            return people
-        else:
+            print("matches", matches)
+            if True in matches:
+                first_match_index = matches.index(True)
+                people = personGroup[first_match_index]
+                distance = face_recognition.face_distance(
+                    [known_faces[first_match_index]], person_encoding)
+                people['accuracy'] = 1-distance[0]*self.tolerance
+                return people
+            else:
+                return []
+        else
             return []
 
     def race(self):

@@ -15,7 +15,6 @@ def camera():
         print "capture image {}".format(str(i))
         error, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        time.sleep(0.5)
         batch.append(frame)
 
     cap.release()
@@ -39,18 +38,19 @@ def files():
 
 if __name__ == "__main__":
 
-    batch = files()
+    batch = camera()
 
-    neural = NeuralClass(batch, 0.5)
+    neural = NeuralClass(batch, 0.1)
+    print(neural.detect())
 
     columns = len(neural.faces)
     rows = 2
     fig, ax = plt.subplots(rows, columns)
     fig.suptitle('Faces Detected\n {}/{}'.format(columns, len(batch)))
     print columns
-    for i in range (columns):
+    for i in range(columns):
         for j in range(rows):
-            print i,j
+            print i, j
             ax[j][i].imshow(neural.frame[i])
             ax[j][i].set_yticklabels([])
             ax[j][i].set_xticklabels([])
@@ -58,5 +58,4 @@ if __name__ == "__main__":
         ax[j][i].imshow(neural.faces[i])
         ax[j][i].set_yticklabels([])
         ax[j][i].set_xticklabels([])
-
     plt.show()
