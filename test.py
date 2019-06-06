@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import glob
 import os
 
+
 def camera():
     batch = []
     print("cropping")
@@ -24,8 +25,8 @@ def camera():
 
 def files():
 
-    img_dir = "Resources" # Enter Directory of all images 
-    data_path = os.path.join(img_dir,'*g')
+    img_dir = "Resources"  # Enter Directory of all images
+    data_path = os.path.join(img_dir, '*g')
     files = glob.glob(data_path)
     data = []
     for f1 in files:
@@ -35,25 +36,27 @@ def files():
 
     return data
 
+
 if __name__ == "__main__":
 
     batch = files()
 
-    neural = NeuralClass(batch, 0)
+    neural = NeuralClass(batch, 0.5)
 
-    columns = 2
-    rows = len(neural.faces)
+    columns = len(neural.faces)
+    rows = 2
     fig, ax = plt.subplots(rows, columns)
-    fig.suptitle('Faces Detected\n {}/{}'.format(rows, len(batch)))
-
-    for i in range(rows):
-        for j in range(columns):
-            ax[i][j].imshow(neural.faces[i])
-            ax[i][j].set_yticklabels([])
-            ax[i][j].set_xticklabels([])
-        ax[i][j].set_xlabel("{}%".format(neural.percents[i]))
-        ax[i][0].imshow(neural.frame[i])
-        ax[i][j].set_yticklabels([])
-        ax[i][j].set_xticklabels([])
+    fig.suptitle('Faces Detected\n {}/{}'.format(columns, len(batch)))
+    print columns
+    for i in range (columns):
+        for j in range(rows):
+            print i,j
+            ax[j][i].imshow(neural.frame[i])
+            ax[j][i].set_yticklabels([])
+            ax[j][i].set_xticklabels([])
+        ax[j][i].set_xlabel("{}%".format(neural.percents[i]))
+        ax[j][i].imshow(neural.faces[i])
+        ax[j][i].set_yticklabels([])
+        ax[j][i].set_xticklabels([])
 
     plt.show()

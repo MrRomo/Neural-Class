@@ -106,7 +106,7 @@ class Utils:
 
     def increase(self, dimentions):
         prop = 1.07
-        dimentions[0] = int(dimentions[0]*0.55)
+        dimentions[0] = int(dimentions[0]*0.3)
         dimentions[1] = int(dimentions[1]*prop)
         dimentions[2] = int(dimentions[2]*prop)
         dimentions[3] = int(dimentions[3]*0.92)
