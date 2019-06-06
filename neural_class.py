@@ -100,14 +100,13 @@ class NeuralClass:
             return {"age": None, "percent": None}
         predict = list()
         for frame in self.faces:
-            blob = cv2.dnn.blobFromImage(
-                frame, 1, (227, 227), self.MODEL_MEAN_VALUES, swapRB=False)
+            blob = cv2.dnn.blobFromImage(frame, 1, (227, 227), self.MODEL_MEAN_VALUES, swapRB=False)
             # Predict Age
             self.age_net.setInput(blob)
             age_preds = self.age_net.forward()
             age = self.age_list[age_preds[0].argmax()]
-            predict.append(age)
-        age_counter = Counter(predict)
+            predict.append(age) ##predict contiene todas las prediciones 
+        age_counter = Counter(predict) ##counter permite conocer el promedio y la moda de las precciones
         result = dict()
         print()
         if(len(predict)):
