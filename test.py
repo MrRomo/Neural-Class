@@ -22,14 +22,19 @@ if __name__ == "__main__":
     columns = 2
     rows = len(neural.faces)
     fig, ax = plt.subplots(rows, columns)
+    fig.suptitle('Faces Detected\n {}/{}'.format(rows, len(batch)))
 
     for i in range(rows):
         for j in range(columns):
             ax[i][j].imshow(neural.faces[i])
+            ax[i][j].set_yticklabels([])
+            ax[i][j].set_xticklabels([])
+        ax[i][j].set_xlabel("{}%".format(neural.percents[i]))
         ax[i][0].imshow(neural.frame[i])
+        ax[i][j].set_yticklabels([])
+        ax[i][j].set_xticklabels([])
 
     print(ax)
-    ax.tranpose()
-    print(ax)
+    print(ax.shape)
     print(type(ax))
     plt.show()
