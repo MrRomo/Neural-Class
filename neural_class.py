@@ -105,12 +105,10 @@ class Utils:
         return people, areas
 
     def increase(self, dimentions):
-        prop = 0.9
-        prop2 = 1.07
-        print(dimentions)
+        prop = 1.07
         dimentions[0] = int(dimentions[0]*0.55)
-        dimentions[1] = int(dimentions[1]*prop2)
-        dimentions[2] = int(dimentions[2]*prop2)
+        dimentions[1] = int(dimentions[1]*prop)
+        dimentions[2] = int(dimentions[2]*prop)
         dimentions[3] = int(dimentions[3]*0.92)
         print(dimentions)
         return dimentions

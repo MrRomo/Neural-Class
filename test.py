@@ -2,10 +2,11 @@ from neural_class import NeuralClass
 import cv2
 import time
 import matplotlib.pyplot as plt
+import glob
+import os
 
-if __name__ == "__main__":
-
-    batch = list()
+def camera():
+    batch = []
     print("cropping")
     cap = cv2.VideoCapture(0)
     # frame = cv2.imread('../Resources/vieja2.jpg')
@@ -17,9 +18,30 @@ if __name__ == "__main__":
         batch.append(frame)
 
     cap.release()
-    neural = NeuralClass(batch, 0.1)
 
-    columns = 2 
+    return batch
+
+
+def files():
+
+    img_dir = "Resources" # Enter Directory of all images 
+    data_path = os.path.join(img_dir,'*g')
+    files = glob.glob(data_path)
+    data = []
+    for f1 in files:
+        img = cv2.imread(f1)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        data.append(img)
+
+    return data
+
+if __name__ == "__main__":
+
+    batch = files()
+
+    neural = NeuralClass(batch, 0)
+
+    columns = 2
     rows = len(neural.faces)
     fig, ax = plt.subplots(rows, columns)
     fig.suptitle('Faces Detected\n {}/{}'.format(rows, len(batch)))
