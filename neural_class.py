@@ -11,12 +11,21 @@ class NeuralClass:
         self.frame = frame
         self.percent = percent
         self.tolerance = tolerance
+        self.MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
+        self.age_list = ['(0, 2)', '(4, 6)', '(8, 12)', '(15, 20)','(25, 32)', '(38, 43)', '(48, 53)', '(60, 100)']
         self.coord = []
         self.percents = []
         self.people = []
         self.utils = Utils()
+        self.age_net = self.load_caffe_models()
+
         # inicializa la clase recortando, guardando las caras y descartando los frames malos
         self.faces = self.cropper()
+
+    def load_caffe_models(self):
+        age_net = cv2.dnn.readNetFromCaffe(
+            './Models/deploy_age.prototxt', './Models/age_net.caffemodel')
+        return age_net
 
     def cropper(self):
         faces = list()
@@ -55,13 +64,17 @@ class NeuralClass:
         return self.people[0] if len(self.people) else []
 
     def encode(self):
-        person_encoding = face_recognition.face_encodings(self.faces[0])
-        return person_encoding
+        if len(self.detect()):
+            person_encoding = face_recognition.face_encodings(self.faces[0])
+            return person_encoding
+        else:
+            []
 
     def compare(self, known_faces, personGroup):
         if len(self.detect()):
             person_encoding = self.encode()
-            matches = face_recognition.compare_faces(known_faces, person_encoding, tolerance=self.tolerance)
+            matches = face_recognition.compare_faces(
+                known_faces, person_encoding, tolerance=self.tolerance)
 
             print("matches", matches)
             if True in matches:
@@ -73,7 +86,7 @@ class NeuralClass:
                 return people
             else:
                 return []
-        else
+        else:
             return []
 
     def race(self):
@@ -83,7 +96,26 @@ class NeuralClass:
         pass
 
     def age(self):
-        pass
+        if not(len(self.detect())):
+            return {"age": None, "percent": None}
+        predict = list()
+        for frame in self.faces:
+            blob = cv2.dnn.blobFromImage(
+                frame, 1, (227, 227), self.MODEL_MEAN_VALUES, swapRB=False)
+            # Predict Age
+            self.age_net.setInput(blob)
+            age_preds = self.age_net.forward()
+            age = self.age_list[age_preds[0].argmax()]
+            predict.append(age)
+        age_counter = Counter(predict)
+        result = dict()
+        print()
+        if(len(predict)):
+            result = {
+                "age": age_counter.most_common()[0][0],
+                "percent": age_counter.most_common()[0][1]/float(len(predict))
+            }
+        return result
 
     def hair(self):
         pass

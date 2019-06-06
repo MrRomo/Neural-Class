@@ -42,6 +42,7 @@ if __name__ == "__main__":
 
     neural = NeuralClass(batch, 0.1)
     print(neural.detect())
+    print(neural.age())
 
     columns = len(neural.faces)
     rows = 2
