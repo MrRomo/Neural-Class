@@ -13,6 +13,7 @@ class NeuralClass:
         self.tolerance = tolerance
         self.coord = list()
         self.percents = list()
+        # inicializa la clase recortando, guardando las caras y descartando los frames malos
         self.faces = self.cropper()
 
     def cropper(self):
@@ -25,24 +26,25 @@ class NeuralClass:
             small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
             person_loc = face_recognition.face_locations(small_frame)
             print("Person detect: {}".format(len(person_loc)))
-            if(len(person_loc)):
+            if(len(person_loc)):  # detecta si hay personas
                 people, areas = utils.setDictionary(person_loc)
+                # ordena las caras de mayor a menor detectadas en el frame
                 people.sort(key=utils.sortDictionary, reverse=True)
                 people = people[0]
                 # encuentra la cara mas grande
                 face_area = max(areas)
                 indexMax = areas.index(face_area)
                 person_location = person_loc[indexMax]
-                # top, rigth, bottom, left
-                t, r, b, l = list(np.array(person_location)*4)
+                # top, rigth, bottom, left (t,r,b,l)
+                t, r, b, l = utils.increase(list(np.array(person_location)*4))
                 percent = face_area*100/float(frame_area)
                 if(percent >= self.percent):
-                    # crop = image[y:y+h, x:x+w]
-                    crop_img = frame[t:t+(r-l), l:l+(b-t)]
-                    faces.append(crop_img)
+                    # recortar imagenes image[y:y+h, x:x+w]
+                    faces.append(frame[t:b, l:r])
                     frames.append(frame)
                     self.coord.append((t, r, b, l))
                     self.percents.append(round(percent, 2))
+        # guarda unicamente los frames donde hay caras
         self.frame = frames
         return faces
 
@@ -101,3 +103,14 @@ class Utils:
             people.append(dictionary_of_features)
             areas.append(width*height)
         return people, areas
+
+    def increase(self, dimentions):
+        prop = 0.9
+        prop2 = 1.07
+        print(dimentions)
+        dimentions[0] = int(dimentions[0]*0.55)
+        dimentions[1] = int(dimentions[1]*prop2)
+        dimentions[2] = int(dimentions[2]*prop2)
+        dimentions[3] = int(dimentions[3]*0.92)
+        print(dimentions)
+        return dimentions

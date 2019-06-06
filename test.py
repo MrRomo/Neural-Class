@@ -13,13 +13,13 @@ if __name__ == "__main__":
         print "capture image {}".format(str(i))
         error, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
+        time.sleep(0.5)
         batch.append(frame)
 
     cap.release()
     neural = NeuralClass(batch, 0.1)
 
-    columns = 2
+    columns = 2 
     rows = len(neural.faces)
     fig, ax = plt.subplots(rows, columns)
     fig.suptitle('Faces Detected\n {}/{}'.format(rows, len(batch)))
@@ -34,7 +34,4 @@ if __name__ == "__main__":
         ax[i][j].set_yticklabels([])
         ax[i][j].set_xticklabels([])
 
-    print(ax)
-    print(ax.shape)
-    print(type(ax))
     plt.show()
