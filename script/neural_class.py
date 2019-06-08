@@ -14,19 +14,11 @@ class NeuralClass:
         self.frame = frame
         self.percent = percent
         self.tolerance = tolerance
-        self.MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
-        self.age_list = ['(0, 2)', '(4, 6)', '(8, 12)', '(15, 20)','(25, 32)', '(38, 43)', '(48, 53)', '(60, 100)']
-        self.coord = []
+         self.coord = []
         self.percents = []
         self.people = []
         self.utils = Utils()
-        self.age_net = self.load_caffe_models()
         self.faces = self.cropper()# inicializa la clase recortando, guardando las caras y descartando los frames malos
-
-    def load_caffe_models(self):
-        age_net = cv2.dnn.readNetFromCaffe(
-            self.ROOT_PATH + '/Models/deploy_age.prototxt', self.ROOT_PATH+'/Models/age_net.caffemodel')
-        return age_net
 
     def cropper(self):
         faces = list()
@@ -36,6 +28,7 @@ class NeuralClass:
             frame_area = frame.shape[0]*frame.shape[1]
             small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
             person_loc = face_recognition.face_locations(small_frame)
+            print(person_loc)
             print("Person detect: {} {} {} ".format(len(person_loc),person_loc[0],type(person_loc[0])))
             if(len(person_loc)):  # detecta si hay personas
                 people, areas = self.utils.setDictionary(person_loc)
@@ -47,9 +40,9 @@ class NeuralClass:
                 face_area = max(areas)
                 indexMax = areas.index(face_area)
                 person_location = person_loc[indexMax]
-                print("dim",person_location)
+                print("dim {}".format(person_location))
                 # top, rigth, bottom, left (t,r,b,l)
-                t, r, b, l = self.utils.increase(person_location)
+                t, r, b, l = self.utils.increase(list(np.asarray(person_location)*4))
                 percent = face_area*100/float(frame_area)
                 print("percent {}%".format(percent))
                 print("dim", t,r,b,l)
@@ -71,10 +64,12 @@ class NeuralClass:
         return []
 
     def encode(self):
+        person_encoding = []
         if len(self.detect()):
-            print self.coord[0], type(self.coord[0])
-            person_encoding = face_recognition.face_encodings(self.frame[0],[self.coord[0]])[0]
-            print "person emcoding",person_encoding
+            for i in range(len(self.frame)):
+                print self.coord[i], type(self.coord[i])
+                person_encoding.append(face_recognition.face_encodings(self.frame[i],[self.coord[i]])[0])
+                print "person emcoding",person_encoding
             return person_encoding
         else:
             []
@@ -110,27 +105,7 @@ class NeuralClass:
         pass
 
     def age(self):
-        if not(len(self.detect())):
-            return {"age": None, "percent": None}
-        predict = list()
-        for frame in self.faces:
-            blob = cv2.dnn.blobFromImage(
-                frame, 1, (227, 227), self.MODEL_MEAN_VALUES, swapRB=False)
-            # Predict Age
-            self.age_net.setInput(blob)
-            age_preds = self.age_net.forward()
-            age = self.age_list[age_preds[0].argmax()]
-            predict.append(age)  # predict contiene todas las prediciones
-        
-        age_counter = Counter(predict)# counter permite conocer el promedio y la moda de las precciones
-        result = dict()
-        print()
-        if(len(predict)):
-            result = {
-                "age": age_counter.most_common()[0][0],
-                "percent": age_counter.most_common()[0][1]/float(len(predict))
-            }
-        return result
+        pass
 
     def hair(self):
         pass

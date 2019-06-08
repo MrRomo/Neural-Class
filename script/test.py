@@ -1,9 +1,12 @@
 from neural_class import NeuralClass
+from PersonClassifier2 import PersonClassifier
+
 import cv2
 import time
 import matplotlib.pyplot as plt
 import glob
 import os
+import numpy as np
 
 
 def camera():
@@ -24,7 +27,7 @@ def camera():
 
 def files():
 
-    img_dir = "Resources"  # Enter Directory of all images
+    img_dir = "../Resources"  # Enter Directory of all images
     data_path = os.path.join(img_dir, '*g')
     files = glob.glob(data_path)
     data = []
@@ -38,20 +41,28 @@ def files():
 
 if __name__ == "__main__":
 
-    batch = camera()
+    batch = files()
 
     neural = NeuralClass(batch, 0.1)
     print(neural.detect())
     print(neural.age())
-
+    personC = PersonClassifier()
     columns = len(neural.faces)
     rows = 2
     fig, ax = plt.subplots(rows, columns)
-    fig.suptitle('Faces Detected\n {}/{}'.format(columns, len(batch)))
+    data = []
+    for frame in neural.frame:
+        res = personC.gender_race(frame)
+        data.append([res["Gender"], res["Race"], res["Age"],
+                        res["ColorHair"], res["Glasses"]])
+
+    fig.suptitle(
+        'Faces Detected\n {}/{}\n{}'.format(columns, len(batch), data))
     print columns
     for i in range(columns):
         for j in range(rows):
             print i, j
+
             ax[j][i].imshow(neural.frame[i])
             ax[j][i].set_yticklabels([])
             ax[j][i].set_xticklabels([])
@@ -59,4 +70,6 @@ if __name__ == "__main__":
         ax[j][i].imshow(neural.faces[i])
         ax[j][i].set_yticklabels([])
         ax[j][i].set_xticklabels([])
+
+ 
     plt.show()
