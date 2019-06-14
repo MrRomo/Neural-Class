@@ -26,7 +26,6 @@ class PersonClassifier:
             'Brown Hair', 'Bald', 'No eyewear', 'Eyeglasses', 'Sunglasses', 'Mustache', 'Smiling', 'Curly Hair', 'Wavy Hair', 'Straight Hair']
         self.N_UPSCLAE = 1
         self.model_path = ('../Models/race_and_gender_model.pkl')  # args.model
-        self.
 
         # predecir una imagen
     def predict_one_image(self, img_path, clf, labels):

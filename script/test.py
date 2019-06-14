@@ -1,12 +1,10 @@
-from neural_class import NeuralClass
-from PersonClassifier2 import PersonClassifier
-
+import os
 import cv2
+import glob
 import time
 import matplotlib.pyplot as plt
-import glob
-import os
 import numpy as np
+from neural_C import NeuralClass
 
 
 def camera():
@@ -27,7 +25,8 @@ def camera():
 
 def files():
 
-    img_dir = "../Resources"  # Enter Directory of all images
+
+    img_dir = "../Resources/Glass"  # Enter Directory of all images
     data_path = os.path.join(img_dir, '*g')
     files = glob.glob(data_path)
     data = []
@@ -41,28 +40,33 @@ def files():
 
 if __name__ == "__main__":
 
-    batch = files()
+    batch = camera()
+
+    print batch
+
 
     neural = NeuralClass(batch, 0.1)
+
+    neural.faces
+
     print(neural.detect())
-    print(neural.age())
-    personC = PersonClassifier()
     columns = len(neural.faces)
     rows = 2
     fig, ax = plt.subplots(rows, columns)
-    data = []
-    for frame in neural.frame:
-        res = personC.gender_race(frame)
-        data.append([res["Gender"], res["Race"], res["Age"],
-                        res["ColorHair"], res["Glasses"]])
+    res = neural.prediction
+    print()
+    print(neural.getAge())
+    print(neural.getRace())
+    print(neural.getHair())
+    print(neural.getGlass())
+    pred = [neural.getGender()["res"],neural.getRace()["res"],neural.getHair()["res"],neural.getAge()["res"],neural.getGlass()['res']] 
+    # fig.suptitle('Faces Detected\n {}/{}\n{}'.format(columns, len(batch), pred))
+    plt.figtext(.5,.9,'Faces Detected\n {}/{}\n{}'.format(columns, len(batch), pred), fontsize=20, ha='center')
+    print("Columns {}".format(columns))
 
-    fig.suptitle(
-        'Faces Detected\n {}/{}\n{}'.format(columns, len(batch), data))
-    print columns
     for i in range(columns):
         for j in range(rows):
             print i, j
-
             ax[j][i].imshow(neural.frame[i])
             ax[j][i].set_yticklabels([])
             ax[j][i].set_xticklabels([])

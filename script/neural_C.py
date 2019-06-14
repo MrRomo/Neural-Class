@@ -3,22 +3,13 @@ import sys
 import os
 import cv2
 import math
-import Image as img
 import pickle
-import sklearn
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import face_recognition
 from collections import Counter
 from PIL import Image, ImageDraw, ImageFont
-import keras
-import tensorflow as tf
-from keras.applications.inception_v3 import decode_predictions
-from io import BytesIO
-from keras.applications.inception_v3 import InceptionV3, decode_predictions
-from keras import backend as K
-from keras.preprocessing import image 
 
 
 class NeuralClass:
@@ -39,9 +30,11 @@ class NeuralClass:
         self.glasses = []
         self.utils = Utils()
         # inicializa la clase recortando, guardando las caras y descartando los frames malos
-        self.COLS = ['Male', 'Asian', 'White', 'Black',  'Baby', 'Child', 'Youth', 'Middle Aged', 'Senior', 'Black Hair', 'Blond Hair','Brown Hair', 'Bald', 'No eyewear', 'Eyeglasses', 'Sunglasses', 'Mustache', 'Smiling', 'Curly Hair', 'Wavy Hair', 'Straight Hair']
+        self.COLS = ['Male', 'Asian', 'White', 'Black',  'Baby', 'Child', 'Youth', 'Middle Aged', 'Senior', 'Black Hair', 'Blond Hair',
+            'Brown Hair', 'Bald', 'No eyewear', 'Eyeglasses', 'Sunglasses', 'Mustache', 'Smiling', 'Curly Hair', 'Wavy Hair', 'Straight Hair']
         self.N_UPSCLAE = 1
-        self.clf, self.labels = self.getModel('../Models/race_and_gender_model.pkl')
+        self.clf, self.labels = self.getModel(
+            '../Models/race_and_gender_model.pkl')
         self.faces = self.cropper()
         self.prediction = self.clasifier()
 
@@ -61,9 +54,9 @@ class NeuralClass:
             small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
             person_loc = face_recognition.face_locations(small_frame)
             print(person_loc)
-            print("Person detect: {} {} {} ".format(
-                len(person_loc), person_loc[0], type(person_loc[0])))
             if(len(person_loc)):  # detecta si hay personas
+                print("Person detect: {} {} {} ".format(
+                    len(person_loc), person_loc[0], type(person_loc[0])))
                 people, areas = self.utils.setDictionary(person_loc)
                 # ordena las caras de mayor a menor detectadas en el frame
                 people.sort(key=self.utils.sortDictionary, reverse=True)
@@ -104,9 +97,9 @@ class NeuralClass:
         if len(self.detect()):
             for i in range(len(self.frame)):
                 print self.coord[i], type(self.coord[i])
-                person_encoding.append(face_recognition.face_encodings(self.frame[i], [self.coord[i]])[0])
-        
-        print "person emcoding", person_encoding
+                person_encoding.append(face_recognition.face_encodings(
+                    self.frame[i], [self.coord[i]])[0])
+
         return person_encoding
 
     def compare(self, known_faces, personGroup):
@@ -114,11 +107,8 @@ class NeuralClass:
         people = []
         if len(self.detect()):
             person_encoding = self.encode()[0]
-            print(known_faces)
-            print type(known_faces)
-            print(person_encoding)
-            print type(person_encoding)
-            matches = face_recognition.compare_faces(known_faces, person_encoding, tolerance=self.tolerance)
+            matches = face_recognition.compare_faces(
+                known_faces, person_encoding, tolerance=self.tolerance)
 
             print("matches", matches)
             print("distance : ", face_recognition.face_distance(
@@ -126,52 +116,49 @@ class NeuralClass:
             if True in matches:
                 first_match_index = matches.index(True)
                 people = personGroup[first_match_index]
-                distance = face_recognition.face_distance([known_faces[first_match_index]], person_encoding)
+                distance = face_recognition.face_distance(
+                    [known_faces[first_match_index]], person_encoding)
                 people['accuracy'] = 1-distance[0]*self.tolerance
                 people['faceRectangle'] = self.people[0]['faceRectangle']
 
         return people
 
     def clasifier(self):
-        
+
         face_encodings = self.encode()
         prediction = None
         if len(face_encodings):
-            prediction = pd.DataFrame(self.clf.predict_proba(face_encodings), columns=self.labels)
+            prediction = pd.DataFrame(self.clf.predict_proba(
+                face_encodings), columns=self.labels)
             prediction = prediction.loc[:, self.COLS]
             print prediction
-        for row in prediction.iterrows():
-            self.race.append(np.argmax(row[1][1:4]))
-            self.gender.append('male' if row[1]['Male']>0.5 else 'female')
-            self.age.append(np.argmax(row[1][4:9]))
-            self.hair.append(np.argmax(row[1][9:13]))
-            self.glasses.append([row[1][13],np.argmax(row[1][13:16])])
+            self.glasses = prediction[['Eyeglasses', 'Sunglasses']]
+
+            for row in prediction.iterrows():
+                self.race.append(np.argmax(row[1][1:4]))
+                self.gender.append(
+                    'male' if row[1]['Male'] > 0.5 else 'female')
+                self.age.append(np.argmax(row[1][4:9]))
+                self.hair.append(np.argmax(row[1][9:13]))
+
         return prediction
-    
-    
 
     def getRace(self):
         return self.getCharacter(self.race)
 
     def getGlass(self):
-        sunglass = 'No'
-        if(self.detect()):
-            iv3 = InceptionV3()
-            for face in self.faces:
-                face  = cv2.resize(face, dsize=(299, 299), interpolation=cv2.INTER_CUBIC)
-                face /= 255 #rango entre 0 y 1
-                face -= 0.5 # Le restamos 0.5 para que los valores bajos pasen a ser negativos, para posteriormente mulitplicarlos
-                face *= 2 #Lo que fina
-                print(face.shape)
-                print("""Alto : {}, Ancho : {}, y profundidad de los pifaceeles al ser RGB son : {}""".format(face.shape[0],face.shape[1],face.shape[2]))
-                face = face.reshape([1,face.shape[0],face.shape[1],face.shape[2]])
-                face.shape
-                pred = iv3.predict(face)
-                glass= {'sunglass':pred[0][836],'sunglasses':pred[0][837],'binoculars':pred[0][447]}
-                if (max(glass.values())>0.2):
-                    sunglass="Yes"
-                print(sunglass)        
-        return glass
+        glasses = 'No'
+        glass = self.glasses["Eyeglasses"]
+        desviacion = glass.std()
+        media = glass.mean()
+        max =  glass[np.argmax(glass)]
+        min =  glass[np.argmin(glass)]
+        print glass
+        print "Media: {} - Desviacion : {} - Max: {} - Min: {}".format(media,desviacion,max,min)
+        if ((media > 0.2)):
+            glasses = "Yes"
+        res= {"res": glasses, "percent": None}
+        return res
 
     def getAge(self):
         return self.getCharacter(self.age)
